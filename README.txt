@@ -11,3 +11,23 @@ Based on:
 RFC 3489
 RFC 5389
 RFC 8656
+
+How to use:
+
+public class TurnModule implements TurnLogBack, TurnExternalAuth, TurnAllocationCallback {
+
+    private TurnConfig config;
+    private TurnServer server;
+
+    public void startTurnServer() throws IOException {
+        config = ... (load from serialization, json, ...)
+        server = new TurnServer(config);
+        server.setLogFunctions(this);
+        server.setExternalAuthentication(this);
+        server.setAllocationCallback(this);
+        server.start();
+    }
+
+    [...]
+
+}

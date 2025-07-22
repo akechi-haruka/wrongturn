@@ -1,6 +1,7 @@
 package eu.haruka.wrongturn.packets;
 
 
+import eu.haruka.wrongturn.Allocation;
 import eu.haruka.wrongturn.TurnPacket;
 import eu.haruka.wrongturn.attributes.*;
 import eu.haruka.wrongturn.objects.ProtocolNumber;

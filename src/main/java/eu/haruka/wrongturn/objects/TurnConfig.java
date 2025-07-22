@@ -2,7 +2,7 @@ package eu.haruka.wrongturn.objects;
 
 public class TurnConfig {
     public int port = 5555;
-    public boolean require_message_integrity;
+    public boolean require_message_integrity = false;
     public Server[] servers = new Server[]{new Server("127.0.0.1", 5555)};
     public int default_lifetime = 600;
     public int max_lifetime = 3600;
@@ -11,14 +11,14 @@ public class TurnConfig {
     public int max_channels = 5;
     public String bind_addr = "0.0.0.0";
     public boolean debug_logging = false;
-    public Hacks hacks;
-    public boolean bind_to_all = true;
+    public Hacks hacks = new Hacks();
+    public boolean bind_to_all = false;
     public int allocation_min_port = 60000;
     public int allocation_max_port = 60999;
     public boolean allow_anonymous = false;
     public boolean log_very_verbose_relay_traffic = false;
 
-    public class Server {
+    public static class Server {
         public String ip;
         public int port;
 
@@ -31,10 +31,19 @@ public class TurnConfig {
         }
     }
 
-    public class Login {
+    public static class Login {
         public String username;
         public String realm;
         public String password;
+
+        public Login() {
+        }
+
+        public Login(String username, String realm, String password) {
+            this.username = username;
+            this.realm = realm;
+            this.password = password;
+        }
     }
 
     public class Hacks {

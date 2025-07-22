@@ -5,19 +5,18 @@ import eu.haruka.wrongturn.attributes.TurnAttribute;
 import eu.haruka.wrongturn.objects.NullLog;
 import eu.haruka.wrongturn.objects.ProtocolNumber;
 import eu.haruka.wrongturn.objects.TurnConfig;
-import eu.haruka.wrongturn.packets.Allocation;
 
 import java.io.ByteArrayInputStream;
 import java.io.DataInputStream;
 import java.io.IOException;
-import java.net.DatagramPacket;
-import java.net.DatagramSocket;
-import java.net.InetSocketAddress;
-import java.net.SocketAddress;
+import java.net.*;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
+/**
+ * WrongTurn STUN/TURN server.
+ */
 public class TurnServer extends Thread {
 
     private final DatagramSocket ssocket;
@@ -28,14 +27,22 @@ public class TurnServer extends Thread {
     private TurnExternalAuth auth;
     private TurnAllocationCallback allocationCallback;
 
-    public TurnServer(TurnConfig config, DatagramSocket ssocket) {
+    /**
+     * Creates a new TURN server. Use start to start it.
+     * @param config The configuration for the server.
+     */
+    public TurnServer(TurnConfig config) throws IOException {
         super("TURN/STUN server");
-        this.ssocket = ssocket;
+        this.ssocket = new MulticastSocket(new InetSocketAddress(config.bind_addr, config.port));
         this.log = new NullLog();
         this.config = config;
         this.allocations = new ArrayList<>();
     }
 
+    /**
+     * Sets the logging callback for log messages from the server.
+     * @param log the callback
+     */
     public void setLogFunctions(TurnLogBack log) {
         if (log == null) {
             throw new NullPointerException("log");
@@ -43,6 +50,10 @@ public class TurnServer extends Thread {
         this.log = log;
     }
 
+    /**
+     * Sets the external authentication callback for the server.
+     * @param auth the callback
+     */
     public void setExternalAuthentication(TurnExternalAuth auth) {
         if (auth == null) {
             throw new NullPointerException("auth");
@@ -50,6 +61,10 @@ public class TurnServer extends Thread {
         this.auth = auth;
     }
 
+    /**
+     * Sets the external allocation callback (allocation/deallocation notifications) for the server.
+     * @param callback the callback
+     */
     public void setAllocationCallback(TurnAllocationCallback callback) {
         if (callback == null) {
             throw new NullPointerException("callback");
@@ -60,7 +75,7 @@ public class TurnServer extends Thread {
     @Override
     public void run() {
         running = true;
-        log.info("Server started");
+        log.info("Server started: " + ssocket.getLocalSocketAddress());
         byte[] udp_recv_buf = new byte[100 * 1024];
         while (running) {
             try {
@@ -112,6 +127,9 @@ public class TurnServer extends Thread {
         log.info("Server stopped");
     }
 
+    /**
+     * Handles data relay. Do not use externally.
+     */
     public void handleRelay(SocketAddress sender, SocketAddress receiver, short channel, byte[] data) throws IOException {
 
         Allocation a = getAllocation(sender, receiver, ProtocolNumber.UDP);
@@ -142,6 +160,9 @@ public class TurnServer extends Thread {
         ssocket.send(dp);
     }
 
+    /**
+     * Responds with an error message for a given request. Do not use externally.
+     */
     public void sendErrorForRequest(SocketAddress target, TurnPacket requestPacket, int errorCode, String message, TurnAttribute... extra) throws IOException {
         log.warning("STUN communication error with " + target + ": " + errorCode + " / " + message);
         TurnPacket p = requestPacket.getNewErrorPacket();
@@ -151,6 +172,9 @@ public class TurnServer extends Thread {
         send(target, p);
     }
 
+    /**
+     * Sends a packet to a given address. Do not use externally.
+     */
     public void send(SocketAddress target, TurnPacket packet) throws IOException {
         log.debug("Sending " + packet + " to " + target);
         packet.initialize(log, this, null);
@@ -158,12 +182,15 @@ public class TurnServer extends Thread {
         send(target, pk);
     }
 
-    public void send(SocketAddress target, byte[] pk) throws IOException {
+    private void send(SocketAddress target, byte[] pk) throws IOException {
         log.debug("Sending " + pk.length + " bytes to " + target);
         DatagramPacket dp = new DatagramPacket(pk, 0, pk.length, target);
         ssocket.send(dp);
     }
 
+    /**
+     * Stops the TURN server.
+     */
     public void stopServer() {
         running = false;
         try {
@@ -172,18 +199,37 @@ public class TurnServer extends Thread {
         }
     }
 
+    /**
+     * Returns the config that is currently in use.
+     * @return the config
+     */
     public TurnConfig getConfig() {
         return config;
     }
 
+    /**
+     * Not implemented yet.
+     */
+    @Deprecated
     public byte[] getKeyFor(String username) {
         return null; // TODO
     }
 
+    /**
+     * Returns the logging callback that's currently in use.
+     * @return the logging callback
+     */
     public TurnLogBack log() {
         return log;
     }
 
+    /**
+     * Retrieves a valid allocation for a given 5-tuple.
+     * @param sender The sender address.
+     * @param receiver The receiver address.
+     * @param protocol The transport protocol.
+     * @return the allocation for the given 5-tuple or null if none is found or it's expired.
+     */
     public synchronized Allocation getAllocation(SocketAddress sender, SocketAddress receiver, ProtocolNumber protocol) {
         for (Allocation a : allocations) {
             if (a.equals(sender, receiver, protocol) && !a.isExpired()) {
@@ -193,10 +239,25 @@ public class TurnServer extends Thread {
         return null;
     }
 
+    /**
+     * Returns the number of current allocations on the server.
+     * @return the number of current allocations on the server.
+     */
     public synchronized int getAllocationCount() {
         return allocations.size();
     }
 
+    /**
+     * Creates a new allocation for the given 5-tuple and login data.
+     * @param sender The sending address.
+     * @param receiver The receiving address.
+     * @param protocol The transport protocol.
+     * @param lifetime The lifetime of the allocation in seconds.
+     * @param username The username used.
+     * @param realm The realm used.
+     * @return The address of the newly created relay socket.
+     * @throws IOException if creating the relay socket fails.
+     */
     public synchronized InetSocketAddress allocate(InetSocketAddress sender, InetSocketAddress receiver, ProtocolNumber protocol, int lifetime, String username, String realm) throws IOException {
         Allocation a = new Allocation(this, sender, receiver, protocol, System.currentTimeMillis() + lifetime * 1000L, username, realm);
         a.createAllocation();
@@ -213,10 +274,18 @@ public class TurnServer extends Thread {
         }
     }
 
+    /**
+     * Retrieves a valid allocation belonging to the given relay address.
+     * @param peer the relay (peer) address to get the allocation for.
+     * @return the allocation belonging to the relay or null.
+     */
     public synchronized Allocation getAllocationByRelay(SocketAddress peer) {
         return allocations.stream().filter(a -> a.getRelay().equals(peer)).findFirst().orElse(null);
     }
 
+    /**
+     * Queries the configured external authenticator. Do not use externally.
+     */
     public boolean externalAuthentication(InetSocketAddress sender, InetSocketAddress receiver, String username, String realm, String password) throws Exception {
         if (auth != null) {
             return auth.auth(sender, receiver, username, realm, password);
@@ -224,11 +293,15 @@ public class TurnServer extends Thread {
         return false;
     }
 
+    /**
+     * Returns the currently configured allocation callback interface.
+     * @return the currently configured allocation callback interface.
+     */
     public TurnAllocationCallback getAllocationCallback() {
         return allocationCallback;
     }
 
-    public void onAllocate(Allocation a) {
+    void onAllocate(Allocation a) {
         if (allocationCallback != null) {
             try {
                 allocationCallback.onAllocate(a);
@@ -238,7 +311,7 @@ public class TurnServer extends Thread {
         }
     }
 
-    public void onFree(Allocation a) {
+    void onFree(Allocation a) {
         if (allocationCallback != null) {
             try {
                 allocationCallback.onFree(a);

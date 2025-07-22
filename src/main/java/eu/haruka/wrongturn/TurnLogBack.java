@@ -1,5 +1,8 @@
 package eu.haruka.wrongturn;
 
+/**
+ * Interface for receiving log messages from the server.
+ */
 public interface TurnLogBack {
 
     void debug(String str);

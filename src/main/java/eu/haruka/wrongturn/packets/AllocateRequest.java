@@ -47,7 +47,7 @@ public class AllocateRequest extends TurnPacket {
             }
         }
         if (!login_ok && !server.getConfig().allow_anonymous) {
-            server.sendErrorForRequest(sender, this, ErrorCode.ERROR_UNAUTHORIZED, "Invalid login data");
+            server.sendErrorForRequest(sender, this, ErrorCode.ERROR_UNAUTHORIZED, "Invalid login data", new Realm(server.getConfig().default_realm));
             return;
         }
 

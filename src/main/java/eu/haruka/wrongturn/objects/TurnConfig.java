@@ -17,6 +17,7 @@ public class TurnConfig {
     public int allocation_max_port = 60999;
     public boolean allow_anonymous = false;
     public boolean log_very_verbose_relay_traffic = false;
+    public String default_realm = "wrongturn";
 
     public static class Server {
         public String ip;

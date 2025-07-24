@@ -46,6 +46,7 @@ public class Main implements TurnLogBack {
         config.allocation_min_port = Integer.parseInt(p.getProperty("allocation_min_port"));
         config.allocation_max_port = Integer.parseInt(p.getProperty("allocation_max_port"));
         config.allow_anonymous = Boolean.parseBoolean(p.getProperty("allow_anonymous"));
+        config.default_realm = p.getProperty("default_realm");
 
         ArrayList<TurnConfig.Login> logins = new ArrayList<>();
         for (int i = 0; p.getProperty("static_logins." + i + ".username") != null; i++) {

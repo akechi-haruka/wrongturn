@@ -126,7 +126,6 @@ public class Allocation {
                         short len = is.readShort();
                         byte[] data = is.readNBytes(len);
                         turn.handleRelay(dp.getSocketAddress(), relay_addr, messageType, data);
-                        continue;
                     }
                 }
             } catch (SocketException ignored) {

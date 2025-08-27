@@ -8,11 +8,11 @@ public interface TurnAllocationCallback {
     /**
      * Called when an allocation is allocated.
      */
-    public void onAllocate(Allocation a);
+    void onAllocate(Allocation a);
 
     /**
      * Called when an allocation is freed (before connection and relay information is deleted).
      */
-    public void onFree(Allocation a);
+    void onFree(Allocation a);
 
 }

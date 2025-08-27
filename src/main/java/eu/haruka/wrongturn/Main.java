@@ -56,7 +56,7 @@ public class Main implements TurnLogBack {
                     p.getProperty("static_logins." + i + ".password")
             ));
         }
-        config.static_logins = new TurnConfig.Login[servers.size()];
+        config.static_logins = logins.toArray(new TurnConfig.Login[logins.size()]);
 
         config.hacks.allow_reallocation = Boolean.parseBoolean(p.getProperty("hacks.allow_reallocation"));
         config.hacks.delete_previous_allocation_on_reallocation = Boolean.parseBoolean(p.getProperty("hacks.delete_previous_allocation_on_reallocation"));

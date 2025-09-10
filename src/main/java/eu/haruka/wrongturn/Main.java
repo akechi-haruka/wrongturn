@@ -8,7 +8,7 @@ import java.util.Properties;
 
 public class Main implements TurnLogBack {
 
-    public static void main(String[] args) throws Exception {
+    static void main(String[] args) throws Exception {
 
         String config_path = "config.properties";
 

@@ -41,7 +41,7 @@ public class MappedAddress extends TurnAttribute {
         ip = switch (addressFamily) {
             case IPv4 -> Inet4Address.getByAddress(is.readNBytes(4));
             case IPv6 -> Inet6Address.getByAddress(is.readNBytes(16));
-            case null, default -> throw new IOException("Unknown address family: " + addressFamilyId);
+            case null -> throw new IOException("Unknown address family: " + addressFamilyId);
         };
     }
 

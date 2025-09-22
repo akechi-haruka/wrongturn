@@ -43,7 +43,7 @@ public class XorMappedAddress extends TurnAttribute {
         ip = switch (addressFamily) {
             case IPv4 -> Inet4Address.getByAddress(xor(is.readNBytes(4), turnPacket.getTurnCookie()));
             case IPv6 -> Inet6Address.getByAddress(xor(is.readNBytes(16), turnPacket.getStunTransactionId()));
-            case null, default -> throw new IOException("Unknown address family: " + addressFamilyId);
+            case null -> throw new IOException("Unknown address family: " + addressFamilyId);
         };
     }
 

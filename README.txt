@@ -1,6 +1,6 @@
 WrongTurn
 Minimal STUN/TURN server written in Java that allows nonsensical configurations.
-(c) 2025 Haruka
+(c) 2026-2026 Haruka
 Licensed under the SSPL.
 
 --------------------------------------

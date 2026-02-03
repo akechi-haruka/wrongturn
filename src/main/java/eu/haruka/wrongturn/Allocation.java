@@ -150,6 +150,10 @@ public class Allocation {
             }
             turn.onFree(this);
             expiry = 0;
+            try {
+                relayThread.join(500);
+            } catch (InterruptedException ignored) {
+            }
             relayThread = null;
             relay_addr = null;
             relay = null;
